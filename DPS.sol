@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.31;
 
 contract Contract {
 
@@ -50,6 +50,7 @@ contract Contract {
         string category;          // Категория ТС (A, B, C, D, etc.)
         uint256 issueDate;        // Дата выдачи
         string driver;            // Водитель
+        uint256 currentTime;    //Конец действия 
     }
 
     // Характеристика штрафа
@@ -99,6 +100,11 @@ contract Contract {
         _;
     }
  
+    modifier CheckTime() {
+        require(MVodPrava[msg.sender].currentTime >= block.timestamp, "Time end");
+        _;
+    }
+
     constructor() {
         // БАНК
         bankAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
@@ -182,9 +188,9 @@ contract Contract {
     }
 
     // Функция для добавления водительского удостоверения
-    function addVodPrava(uint256 _number, uint256 _expiryDate, string memory _category, uint256 _issueDate, string memory _driver) public {
+    function addVodPrava(uint256 _number, uint256 _expiryDate, string memory _category, uint256 _issueDate, string memory _driver, uint256 _currentTime) public {
         require(_number > 0, unicode"Идентификационный номер не может быть пустым");
-        MVodPrava[msg.sender] = VodPrava(_number, _expiryDate, _category, _issueDate, _driver);
+        MVodPrava[msg.sender] = VodPrava(_number, _expiryDate, _category, _issueDate, _driver, _currentTime);
     }
 
     // Запрос на регистрацию транспортного средства
@@ -197,10 +203,15 @@ contract Contract {
     }
 
     // Запрос на продление срока действия водительского удостоверения
-    function extendVodPrava(uint _newExpiryDate) public {
+    function extendVodPrava(uint _newExpiryDate) public CheckTime {
         require(MVodPrava[msg.sender].number > 0, unicode"Не найдено действительных водительских прав");
-        require(MVodPrava[msg.sender].expiryDate > block.timestamp, unicode"Срок действия водительских прав уже истек");
         require(_newExpiryDate > MVodPrava[msg.sender].expiryDate, unicode"Новый срок годности должен быть больше чем прошлый");
+
+         uint256 time = MVodPrava[msg.sender].
+
+
+
+
 
         MVodPrava[msg.sender].expiryDate = _newExpiryDate;
     }
@@ -236,12 +247,14 @@ contract Contract {
     }
 
     // Функция для подтверждения водительских прав
-    function confirmsVodPrava(address _driver, uint256 _number, uint256 _expiryDate, string memory _category, uint256 _issueDate) public Checkpolice {
+    function confirmsVodPrava(address _driver, uint256 _number, uint256 _expiryDate, string memory _category, uint256 _issueDate, uint256 _currentTime) public Checkpolice {
         require(_number > 0, unicode"Номер не может быть пустым");
         require(_expiryDate > block.timestamp, unicode"Срок действия истек");
         require(bytes(Users[_driver].login).length > 0, unicode"Водитель не зарегистрирован");
 
-        MVodPrava[_driver] = VodPrava(_number, _expiryDate, _category, _issueDate, Drivers[_driver].FIO);
+        uint256 time = block.timestamp + _currentTime;
+
+        MVodPrava[_driver] = VodPrava(_number, _expiryDate, _category, _issueDate, Drivers[_driver].FIO, time);
     }
 
     // Функция для создания штрафа
