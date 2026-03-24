@@ -105,6 +105,15 @@ contract Contract {
         _;
     }
 
+    enum Category { A, B, C }
+
+    mapping(address => Category) public userCategory;
+     
+    function setCategory(Category category) public {
+    userCategory[msg.sender] = category;
+    }
+
+
     constructor() {
         // БАНК
         bankAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
@@ -115,12 +124,6 @@ contract Contract {
         Roles[InsuranceAddress] = Role.insurance;
     }
 
-
-    //смотреть роль
-    function  gtRole() public view returns(Role) {
-        return Roles[msg.sender];
-    }
-    
     // Функция для просмотра баланса банка
     function getBalanceBank() public view returns (uint256) {
         return address(bankAddress).balance;
@@ -194,7 +197,7 @@ contract Contract {
     }
 
     // Запрос на регистрацию транспортного средства
-    function registrCar(string memory _category, uint _marketValue, uint _serviceLife) public {
+    function registrCar(string memory _category, uint _marketValue, uint _serviceLife) public  {
         require(bytes(_category).length > 0, unicode"Категория не может быть пустой");
         require(_marketValue > 0, unicode"Рыночная стоимость должна быть больше 0");
         require(keccak256(abi.encode(_category)) == keccak256(abi.encode(MVodPrava[msg.sender].category)), unicode"Категория транспортного средства не соответствует категории водительского удостоверения");
@@ -206,12 +209,6 @@ contract Contract {
     function extendVodPrava(uint _newExpiryDate) public CheckTime {
         require(MVodPrava[msg.sender].number > 0, unicode"Не найдено действительных водительских прав");
         require(_newExpiryDate > MVodPrava[msg.sender].expiryDate, unicode"Новый срок годности должен быть больше чем прошлый");
-
-         uint256 time = MVodPrava[msg.sender].
-
-
-
-
 
         MVodPrava[msg.sender].expiryDate = _newExpiryDate;
     }
