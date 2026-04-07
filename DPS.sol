@@ -101,7 +101,7 @@ contract Contract {
     }
  
     modifier CheckTime() {
-        require(MVodPrava[msg.sender].currentTime >= block.timestamp, "Time end");
+        require(MVodPrava[msg.sender].expiryDate >= block.timestamp, "Time end");
         _;
     }
 
@@ -122,6 +122,8 @@ contract Contract {
         // СТРАХОВАЯ
         InsuranceAddress = 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2;
         Roles[InsuranceAddress] = Role.insurance;
+
+        owner = msg.sender;
     }
 
     // Функция для просмотра баланса банка
@@ -195,6 +197,7 @@ contract Contract {
         require(_number > 0, unicode"Идентификационный номер не может быть пустым");
         MVodPrava[msg.sender] = VodPrava(_number, _expiryDate, _category, _issueDate, _driver, _currentTime);
     }
+    
 
     // Запрос на регистрацию транспортного средства
     function registrCar(string memory _category, uint _marketValue, uint _serviceLife) public  {
@@ -218,11 +221,15 @@ contract Contract {
         require(to != address(0), unicode"Неверный адрес получателя");
         require(balances[msg.sender] >= _price, unicode"Недостаточно средств");
         require(msg.sender != to, unicode"Вы не можете перевести сами");
+        require(Drivers[msg.sender].numberUnpaidFines > 0, "No fines");
 
         balances[msg.sender] -= _price;
         balances[to] += _price;
 
+        if (Drivers[msg.sender].numberUnpaidFines > 0) {
         Drivers[msg.sender].numberUnpaidFines--;
+        }
+
     }
 
     // Функция для страховки
@@ -240,6 +247,7 @@ contract Contract {
 
     //Функция для регистрации ДПСника
     function setDPS() public {
+        require(msg.sender == owner);
         Roles[msg.sender] = Role.police;
     }
 
