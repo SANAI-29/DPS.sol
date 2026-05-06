@@ -82,7 +82,7 @@ contract Contract {
     mapping(address => User) public Users;
     mapping(address => uint256) public balances;
     mapping(address => Driver) public Drivers;
-    mapping(address => Accident) public Accidents;
+    mapping(address => Accident[]) public Accidents;
     mapping(address => Insurance) public Insurances;
 
     modifier ChekDriver() {
@@ -101,7 +101,7 @@ contract Contract {
     }
  
     modifier CheckTime() {
-        require(MVodPrava[msg.sender].currentTime >= block.timestamp, "Time end");
+        require(MVodPrava[msg.sender].expiryDate >= block.timestamp, "Time end");
         _;
     }
 
@@ -122,6 +122,8 @@ contract Contract {
         // СТРАХОВАЯ
         InsuranceAddress = 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2;
         Roles[InsuranceAddress] = Role.insurance;
+
+        owner = msg.sender;
     }
 
     // Функция для просмотра баланса банка
@@ -155,7 +157,7 @@ contract Contract {
     }
 
     //Функция для просмотра ДТП
-    function getAccident() public view returns (Accident memory) {
+    function getAccident() public view returns (Accident[] memory) {
     return Accidents[msg.sender];
     }
 
@@ -179,6 +181,7 @@ contract Contract {
     // Функция для регистрации пользователя
     function registr(string memory _login, string memory _password) public {
         require(keccak256(abi.encode(Users[msg.sender].login)) == keccak256(abi.encode("")), unicode"пользователь уже зарегистрирован");
+        require(bytes(_login).length != 0, unicode"логин не может быть пустым");
         Users[msg.sender] = User(_login, _password);
         Roles[msg.sender] = Role.driver;
     }
@@ -195,6 +198,7 @@ contract Contract {
         require(_number > 0, unicode"Идентификационный номер не может быть пустым");
         MVodPrava[msg.sender] = VodPrava(_number, _expiryDate, _category, _issueDate, _driver, _currentTime);
     }
+    
 
     // Запрос на регистрацию транспортного средства
     function registrCar(string memory _category, uint _marketValue, uint _serviceLife) public  {
@@ -213,16 +217,27 @@ contract Contract {
         MVodPrava[msg.sender].expiryDate = _newExpiryDate;
     }
 
+
+    //Функция для пополнения счёта
+    function deposit() public payable {
+    balances[msg.sender] += msg.value;
+    }
+
+
     // Функция перевода
     function transfer(address to, uint256 _price) external {
         require(to != address(0), unicode"Неверный адрес получателя");
         require(balances[msg.sender] >= _price, unicode"Недостаточно средств");
         require(msg.sender != to, unicode"Вы не можете перевести сами");
+        require(Drivers[msg.sender].numberUnpaidFines > 0, "No fines");
 
         balances[msg.sender] -= _price;
         balances[to] += _price;
 
+        if (Drivers[msg.sender].numberUnpaidFines > 0) {
         Drivers[msg.sender].numberUnpaidFines--;
+        }
+
     }
 
     // Функция для страховки
@@ -239,9 +254,11 @@ contract Contract {
     // ДПС
 
     //Функция для регистрации ДПСника
-    function setDPS() public {
-        Roles[msg.sender] = Role.police;
+        function setDPS(address _addr) public {
+        require(msg.sender == owner, "Not owner");
+    Roles[_addr] = Role.police;
     }
+
 
     // Функция для подтверждения водительских прав
     function confirmsVodPrava(address _driver, uint256 _number, uint256 _expiryDate, string memory _category, uint256 _issueDate, uint256 _currentTime) public Checkpolice {
@@ -262,31 +279,47 @@ contract Contract {
 
     // Функция для создания отметки ДТП
     function createDTP(address _driver, string memory _date, string memory _description, string memory _place) public Checkpolice {
-        Accidents[_driver] = Accident(_date, _description, _place);
+        Accidents[_driver].push(Accident(_date, _description, _place));
     }
 
     // Страховая
 
-    // Оформление страховки/расчёт страхового взноса
-    function calculationInsurance (uint256 _carIndex) public view returns (uint256) {
-            require(Cars[msg.sender][_carIndex].marketValue > 0, unicode"Машина не существует или стоимость 0");
-           
-            uint strVzn;
+    // Оформление страховки/расчёт страхового взноса                                 чуть чуть переписал гпт 
+    function calculationInsurance(uint256 _carIndex) public view returns (uint256) {
+    require(_carIndex < Cars[msg.sender].length, unicode"Машина не существует");
 
-            Car storage car = Cars[msg.sender][_carIndex];
-            Driver storage driver = Drivers[msg.sender];
+    Car storage car = Cars[msg.sender][_carIndex];
+    Driver storage driver = Drivers[msg.sender];
 
-            uint256 Rs =  car.marketValue; 
-            uint256 Ce = car.serviceLife;
-            uint256 Shtr = driver.numberUnpaidFines;
-            uint256 Dtp = driver.numberAccident;
-            uint256 Vs = driver.drivingExperience;
+    uint256 Rs = car.marketValue; 
+    uint256 Ce = car.serviceLife;
+    uint256 Shtr = driver.numberUnpaidFines;
+    uint256 Dtp = driver.numberAccident;
+    uint256 Vs = driver.drivingExperience;
 
-            strVzn = ((Rs * (10 - Ce / 100)) * 1 + 2 * Shtr + Dtp - 2 * Vs)/10;
-          
-            return strVzn;
+    // (1 - Ce/10) * 10
+    int256 temp = int256(10 - Ce);
 
-        }
+    // модуль |...|
+    if (temp < 0) {
+        temp = -temp;
+    }
+
+    // итоговая формула
+    int256 strVzn = (
+        int256(Rs) * temp +   // Rs * |1 - Ce/10| * 10
+        int256(2 * Shtr) +    // 0.2 * Штр
+        int256(10 * Dtp) -    // ДТП
+        int256(2 * Vs)        // 0.2 * Вс
+    ) / 10;
+
+    // защита от отрицательного результата
+    if (strVzn < 0) {
+        return 0;
+    }
+
+    return uint256(strVzn);
+}
 
     //ВЫход
     function exit() public {
