@@ -1,36 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>Главная страница</title>
-</head>
-<body>
 
-    <div class="login-box">
-        <form method="get" action="{{ url_for('reg') }}">
-            <button type="submit">Зарегистрироваться</button>
-        </form>
-    </div>
+{% block body %}
 
-    <div class="login-box">
-        <form method="get" action="{{ url_for('authorization') }}">
-            <button type="submit">Войти</button>
-        </form>
-    </div>
+    {% endblock %}
 
-    <div class="login-box">
-        <form method="get" action="{{ url_for('exit') }}">
-            <button type="submit">Выйти</button>
-        </form>
-    </div>
 
-    <div class="login-box">
-        <form method="get" action="{{ url_for('addVodPrava') }}">
-            <button type="submit">Функция для добавления ВУ</button>
-        </form>
-    </div>
-
-</body>
-</html>
