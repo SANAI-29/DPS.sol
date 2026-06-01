@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for, request, session, redirect
 from connect import contract
+from flask import render_template, request
 
 app = Flask(__name__)
 
@@ -15,13 +16,14 @@ def index():
 def reg():
     if request.method == "POST":
         try:
+            address = request.form.get("address")
             login = request.form.get("login")
             password = request.form.get("password")
 
             result = contract.functions.registr(
                 login,
                 password
-            ).transact({"from": pk})
+            ).transact({"from": address})
 
             session["login"] = login
 
@@ -33,6 +35,7 @@ def reg():
 
 @app.route("/authorization", methods=["GET", "POST"])
 def authorization():
+
     if request.method =="POST":
         try:
             login = request.form.get("login")
@@ -58,15 +61,18 @@ def rr():
 
 @app.route('/addVodPrava', methods=["GET", "POST"])
 def addVodPrava():
+     
+    if "login" not in session:
+        return redirect(url_for("reg"))
+     
     if request.method =="POST":
         try:
-            number = request.form.get("number")
-            expiryDate = request.form.get("expiryDate")
+            number = int(request.form.get("number"))
+            expiryDate = int(request.form.get("expiryDate"))
             category = request.form.get("category")
-            issueDate = request.form.get("issueDate")
+            issueDate = int(request.form.get("issueDate"))
             driver = request.form.get("driver")
-            currentTime = request.form.get("currentTime")
-
+            currentTime = int(request.form.get("currentTime"))
             result = contract.functions.addVodPrava(
                 number,
                 expiryDate,
@@ -76,7 +82,6 @@ def addVodPrava():
                 currentTime
             ).transact({"from": pk})
 
-            
         except Exception as e:
             return f"Ошибка {e}"
         
@@ -84,6 +89,27 @@ def addVodPrava():
     return render_template("addVodPrava.html")
 
 
+@app.route("/getVodPrava")
+def getVodPrava():
+
+    if "login" not in session:
+        return redirect(url_for("reg"))
+
+    try:
+        result = contract.functions.getVodPrava().call({"from": pk})
+        data = {
+            "number": result[0],
+            "expiryDate": result[1],
+            "category": result[2],
+            "issueDate": result[3],
+            "driver": result[4],
+            "currentTime": result[5]
+        }
+
+        return render_template("getVodPrava.html", data=data)
+
+    except Exception as e:
+        return f"Ошибка: {e}"
 
 
 @app.route("/exit")
@@ -93,5 +119,4 @@ def exit():
 
 
 if __name__ == "__main__":
-    app.run(debug=True) 
-
+    app.run(debug=True)
