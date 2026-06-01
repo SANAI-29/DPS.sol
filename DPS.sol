@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.31;
+pragma solidity ^0.8.28;
 
 contract Contract {
 
@@ -46,11 +46,11 @@ contract Contract {
     // Характеристика водительских прав
     struct VodPrava {
         uint256 number;           // Номер водительского удостоверения
-        uint256 expiryDate;       // Срок действия
+        uint256  expiryDate;       // Срок действия
         string category;          // Категория ТС (A, B, C, D, etc.)
-        uint256 issueDate;        // Дата выдачи
+        uint256  issueDate;        // Дата выдачи
         string driver;            // Водитель
-        uint256 currentTime;    //Конец действия 
+        uint256  currentTime;    //Конец действия
     }
 
     // Характеристика штрафа
@@ -145,7 +145,7 @@ contract Contract {
     function getVodPrava() public view returns (VodPrava memory) {
     return MVodPrava[msg.sender];
     }
-
+    
     //Функция для просмотра машины 
     function getCars() public view returns (Car[] memory) {
     return Cars[msg.sender];
@@ -181,6 +181,7 @@ contract Contract {
     // Функция для регистрации пользователя
     function registr(string memory _login, string memory _password) public {
         require(keccak256(abi.encode(Users[msg.sender].login)) == keccak256(abi.encode("")), unicode"пользователь уже зарегистрирован");
+        require(bytes(_login).length != 0, unicode"логин не может быть пустым");
         Users[msg.sender] = User(_login, _password);
         Roles[msg.sender] = Role.driver;
     }
@@ -193,8 +194,11 @@ contract Contract {
     }
 
     // Функция для добавления водительского удостоверения
-    function addVodPrava(uint256 _number, uint256 _expiryDate, string memory _category, uint256 _issueDate, string memory _driver, uint256 _currentTime) public {
+    function addVodPrava(uint256 _number, uint256  _expiryDate, string memory _category, uint256  _issueDate, string memory _driver, uint256  _currentTime) public {
         require(_number > 0, unicode"Идентификационный номер не может быть пустым");
+        require(_issueDate >_expiryDate, unicode"Неправильно указанная дата");
+        require(keccak256(abi.encode(_driver)) != keccak256(abi.encode("")), unicode"Водитель не может быть пустым");
+
         MVodPrava[msg.sender] = VodPrava(_number, _expiryDate, _category, _issueDate, _driver, _currentTime);
     }
     
@@ -253,8 +257,8 @@ contract Contract {
     // ДПС
 
     //Функция для регистрации ДПСника
-    function setDPS(address _addr) public {
-    require(msg.sender == owner, "Not owner");
+        function setDPS(address _addr) public {
+        require(msg.sender == owner, "Not owner");
     Roles[_addr] = Role.police;
     }
 
