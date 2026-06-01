@@ -14,5 +14,5 @@ with open("blockchain/artifacts/contracts/Contract.sol/Contract.json") as f:
 
 contract = w3.eth.contract(
     address=config["address"],
-  abi=config["abi"]
+    abi=config["abi"]
 )
