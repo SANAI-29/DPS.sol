@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link type="text/css" href="{{ url_for('static', filename='css/authorization.css') }}" rel="stylesheet" />
+    <title>Вход</title>
+</head>
+<body>
+
+    <div class="login-box">
+        <h1>Войти</h1>
+        <form method="POST" action="{{ url_for('authorization') }}">
+            <div class="input-group">
+                <label for="login">Логин</label>
+                <input type="text" id="login" name="login" placeholder="Введите логин" />
+            </div>
+
+            <div class="input-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" placeholder="Введите пароль" />
+            </div>
+
+            <button type="submit">Войти</button>
+        </form>
+    </div>
+</body>
+</html>
