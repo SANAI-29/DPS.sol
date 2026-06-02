@@ -1,0 +1,23 @@
+
+{% extends "base.html" %}
+
+
+{% block body %}
+<h1>Водительское удостоверение</h1>
+
+<p>Номер: {{ data.number }}</p>
+<p>Срок действия: {{ data.expiryDate }}</p>
+<p>Категория: {{ data.category }}</p>
+<p>Дата выдачи: {{ data.issueDate }}</p>
+<p>Водитель: {{ data.driver }}</p>
+<p>Текущее время: {{ data.currentTime }}</p>
+
+
+<div class="login-box">
+        <form method="get" action="{{ url_for('index') }}">
+            <button type="submit">Вернуться на главную страницу</button>
+        </form>
+    </div>
+{% endblock %}
+
+
