@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/CSS/style.css">
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+
+    
+<nav>
+    <a href="{{ url_for('index') }}">Home</a>
+    <a href="{{ url_for('reg') }}">reg</a>
+    <a href="{{ url_for('authorization') }}">auth</a>
+    <a href="{{ url_for('exit') }}">exit</a>
+    <a href="{{ url_for('addVodPrava') }}">addVodPrava</a>
+    <a href="{{ url_for('getVodPrava') }}">getVodPrava</a>
+</nav>
+
+    {% block body %}{% endblock %}
+    <div>
+
+    </div>
+</body>
+</html>
+
