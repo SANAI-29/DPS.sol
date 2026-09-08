@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+  <div class="login-box">
+        <h3>Введите данные водителького удостоверения</h3>
+        <form method="POST" action="/addVodPrava">
+            <div class="input-group">
+                <label for="number">Номер</label>
+                <input type="text" id="number" name="number" placeholder="Введите номер" />
+            </div>
+
+            <div class="input-group">
+                <label for="expiryDate">Срок действия ВУ</label>
+                <input type="expiryDate" id="expiryDate" name="expiryDate" placeholder="Введите срок действия" />
+            </div>
+
+            <div class="input-group">
+                <label for="category">Категория ТС</label>
+                <input type="category" id="category" name="category" placeholder="Введите дату получения ВУ" />
+            </div>
+
+            <div class="input-group">
+                <label for="driver">Водитель</label>
+                <input type="driver" id="driver" name="driver" placeholder="Введите водителя" />
+            </div>
+
+            <div class="input-group">
+                <label for="currentTime">Конец ВУ</label>
+                <input type="currentTime" id="currentTime" name="currentTime" placeholder="Введите дату конца ВУ" />
+            </div>
+
+            <div class="input-group">
+                <label for="issueDate">Дата выдачи</label>
+                <input type="issueDate" id="issueDate" name="issueDate" placeholder="Введите дату выдачи ВУ" />
+            </div>
+            
+            <button type="submit">Добавить</button>
+        </form>
+    </div>
+
+{% endblock %}
